@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:10.5
+    hostname: mariadb
+    container_name: mariadb_container
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: hospital
+      MARIADB_USER: user
+      MARIADB_PASSWORD: userpass
+    ports:
+      - "3306:3306"
