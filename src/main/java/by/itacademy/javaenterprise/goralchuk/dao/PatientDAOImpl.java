@@ -1,28 +1,18 @@
 package by.itacademy.javaenterprise.goralchuk.dao;
 
-import by.itacademy.javaenterprise.goralchuk.dao.utils.ConnectionUtils;
 import by.itacademy.javaenterprise.goralchuk.entity.Patient;
 import by.itacademy.javaenterprise.goralchuk.entity.PatientSex;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-import javax.sql.DataSource;
 import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class PatientDAOImpl implements PatientDAO {
@@ -33,6 +23,16 @@ public class PatientDAOImpl implements PatientDAO {
             "patient_sex,patient_birthday) " +
             "VALUES" +
             " (?,?,?,?)";
+    private static final String GET_PATIENT = "" +
+            "SELECT " +
+            "patient_id, " +
+            "patient_registration, " +
+            "patient_name, " +
+            "patient_surname, " +
+            "patient_sex, " +
+            "patient_birthday " +
+            "FROM patients " +
+            "WHERE patient_id = :id ";
     private static final String FIND_LIMITS_PATIENTS = "" +
             "SELECT " +
             "patient_id, " +
@@ -43,8 +43,7 @@ public class PatientDAOImpl implements PatientDAO {
             "patient_birthday " +
             "FROM patients " +
             "WHERE patient_sex = ? " +
-            "ORDER BY patient_name ASC" +
-            "";
+            "ORDER BY patient_name ASC ";
     private static final String FIND_ALL_PATIENTS = "" +
             "SELECT " +
             "patient_id, " +
@@ -53,30 +52,45 @@ public class PatientDAOImpl implements PatientDAO {
             "patient_surname, " +
             "patient_sex, " +
             "patient_birthday " +
-            "FROM patients";
+            "FROM patients ";
 
     private static final Logger logger = LoggerFactory.getLogger(PatientDAOImpl.class);
-    private final JdbcTemplate jdbcTemplate;
+
+    private JdbcTemplate jdbcTemplate;
+
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
 
     @Autowired
-    public PatientDAOImpl(JdbcTemplate jdbcTemplate) {
+    public PatientDAOImpl(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
 
     @Override
-    public Patient get(Serializable id) throws SQLException {
+    public Patient get(long id) {
+        try {
+            Map<String, Long> params = Map.of("id", id);
+            return namedParameterJdbcTemplate.queryForObject(GET_PATIENT, params, new PatientMapper());
+        } catch (Exception ex) {
+            logger.error("" + new SQLException(ex.getMessage()));
+        }
         return null;
     }
 
     @Override
     public void save(Patient patient) {
-        jdbcTemplate.update(SAVE_PATIENT,
-                patient.getName(),
-                patient.getSurname(),
-                patient.getPatientSex().toString(),
-                patient.getBirthday()
-        );
+        try {
+            jdbcTemplate.update(SAVE_PATIENT,
+                    patient.getName(),
+                    patient.getSurname(),
+                    patient.getPatientSex().toString(),
+                    patient.getBirthday()
+            );
+        } catch (Exception ex) {
+            logger.error("" + new SQLException(ex.getMessage()));
+        }
     }
 
     @Override
@@ -91,13 +105,25 @@ public class PatientDAOImpl implements PatientDAO {
 
     @Override
     public List<Patient> findAllPersons() {
-            return jdbcTemplate
+        List<Patient> patientList = null;
+        try {
+            patientList = jdbcTemplate
                     .query(FIND_ALL_PATIENTS, new PatientMapper());
+        } catch (Exception ex) {
+            logger.error("" + new SQLException(ex.getMessage()));
+        }
+        return patientList;
     }
 
     @Override
     public List<Patient> findBySexPatients(PatientSex patientSex) {
-        return jdbcTemplate
-                .query(FIND_LIMITS_PATIENTS,new PatientMapper(), String.valueOf(patientSex));
+        List<Patient> patientList = null;
+        try {
+            patientList = jdbcTemplate
+                    .query(FIND_LIMITS_PATIENTS, new PatientMapper(), String.valueOf(patientSex));
+        } catch (Exception ex) {
+            logger.error("" + new SQLException(ex.getMessage()));
+        }
+        return patientList;
     }
 }

@@ -11,7 +11,6 @@ import java.util.List;
 @Component
 public class Hospital {
     @Autowired
-    @Qualifier("doctorBean")
     private DAO<?> person;
 
     public List<?> selectPersons(){
