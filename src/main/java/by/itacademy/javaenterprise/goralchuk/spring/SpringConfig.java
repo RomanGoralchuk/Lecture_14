@@ -3,12 +3,14 @@ package by.itacademy.javaenterprise.goralchuk.spring;
 import by.itacademy.javaenterprise.goralchuk.dao.PatientDAO;
 import by.itacademy.javaenterprise.goralchuk.dao.PatientDAOImpl;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 
@@ -30,10 +32,6 @@ public class SpringConfig {
     @Value("${jdbc.minIdle}")
     private int minIdle;
 
-    @Bean
-    public PatientDAO patientBean(){
-        return new PatientDAOImpl(dataSourceBean());
-    }
 
     @Bean (destroyMethod = "close")
     public DataSource dataSourceBean(){
@@ -45,6 +43,15 @@ public class SpringConfig {
         basicDataSource.setMaxIdle(maxIdle);
         basicDataSource.setMinIdle(minIdle);
         return basicDataSource;
+    }
+
+    @Bean
+    public PatientDAO patientBean(){
+        return new PatientDAOImpl(jdbcTemplate());
+    }
+    @Bean
+    public JdbcTemplate jdbcTemplate(){
+        return new JdbcTemplate(dataSourceBean());
     }
 
 }

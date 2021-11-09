@@ -1,4 +1,4 @@
-INSERT INTO `patients` (`patient_ID`, `patient_registration`, `patient_name`, `patient_surname`, `patient_sex`, `patient_birthday`) VALUES
+INSERT INTO `patients` (`patient_id`, `patient_registration`, `patient_name`, `patient_surname`, `patient_sex`, `patient_birthday`) VALUES
 	(1, '2021-10-17 23:05:32', 'James', 'Bukster', 'M', '1988-11-10'),
 	(2, '2021-10-17 23:05:43', 'Jane', 'Bukster', 'F', '2004-05-15'),
 	(3, '2021-10-17 23:19:19', 'Bob', 'Sponge', 'M', '2000-10-18'),

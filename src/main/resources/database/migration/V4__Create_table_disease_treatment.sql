@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS `disease_treatment` (
   `doctor` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`input_number`),
   KEY `FK_disease_treatment_doctors` (`doctor`),
-  CONSTRAINT `FK_disease_treatment_doctors` FOREIGN KEY (`doctor`) REFERENCES `doctors` (`doc_ID`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `FK_disease_treatment_doctors` FOREIGN KEY (`doctor`) REFERENCES `doctors` (`doc_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `FK_disease_treatment_registration_complaints` FOREIGN KEY (`input_number`) REFERENCES `registration_complaints` (`reg_number`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

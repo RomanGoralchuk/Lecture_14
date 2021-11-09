@@ -5,8 +5,14 @@ import by.itacademy.javaenterprise.goralchuk.entity.Patient;
 import by.itacademy.javaenterprise.goralchuk.entity.PatientSex;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.extern.log4j.Log4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.Connection;
@@ -19,7 +25,6 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 public class PatientDAOImpl implements PatientDAO {
     private static final String SAVE_PATIENT = "" +
             "INSERT INTO patients " +
@@ -30,7 +35,7 @@ public class PatientDAOImpl implements PatientDAO {
             " (?,?,?,?)";
     private static final String FIND_LIMITS_PATIENTS = "" +
             "SELECT " +
-            "patient_ID, " +
+            "patient_id, " +
             "patient_registration, " +
             "patient_name, " +
             "patient_surname, " +
@@ -42,7 +47,7 @@ public class PatientDAOImpl implements PatientDAO {
             "";
     private static final String FIND_ALL_PATIENTS = "" +
             "SELECT " +
-            "patient_ID, " +
+            "patient_id, " +
             "patient_registration, " +
             "patient_name, " +
             "patient_surname, " +
@@ -51,8 +56,13 @@ public class PatientDAOImpl implements PatientDAO {
             "FROM patients";
 
     private static final Logger logger = LoggerFactory.getLogger(PatientDAOImpl.class);
+    private final JdbcTemplate jdbcTemplate;
 
-    private DataSource dataSource;
+    @Autowired
+    public PatientDAOImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
 
     @Override
     public Patient get(Serializable id) throws SQLException {
@@ -61,44 +71,16 @@ public class PatientDAOImpl implements PatientDAO {
 
     @Override
     public void save(Patient patient) {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        String sql = SAVE_PATIENT;
-        Savepoint savepoint1 = null;
-        if (patient != null) {
-            try {
-                connection = dataSource.getConnection();
-                connection.setAutoCommit(false);
-                savepoint1 = connection.setSavepoint("Savepoint One");
-
-                String name = patient.getName();
-                String surname = patient.getSurname();
-                PatientSex patientSex = patient.getPatientSex();
-                Date birthday = patient.getBirthday();
-
-                statement = connection.prepareStatement(sql);
-
-                statement.setString(1, name);
-                statement.setString(2, surname);
-                statement.setString(3, String.valueOf(patientSex));
-                statement.setDate(4, (java.sql.Date) birthday);
-
-                statement.executeUpdate();
-                connection.commit();
-                logger.info("Patient added to the table successfully!");
-                connection.setAutoCommit(true);
-            } catch (SQLException ex) {
-                logger.error(ex.toString());
-                ConnectionUtils.rollbackTransaction(connection, savepoint1);
-            } finally {
-                ConnectionUtils.closePrepareStatement(statement);
-                ConnectionUtils.closeConnection(connection);
-            }
-        }
+        jdbcTemplate.update(SAVE_PATIENT,
+                patient.getName(),
+                patient.getSurname(),
+                patient.getPatientSex().toString(),
+                patient.getBirthday()
+        );
     }
 
     @Override
-    public void update(Patient patients) throws SQLException {
+    public void update(Patient patient) throws SQLException {
 
     }
 
@@ -109,91 +91,13 @@ public class PatientDAOImpl implements PatientDAO {
 
     @Override
     public List<Patient> findAllPersons() {
-        List<Patient> patients = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        String sql = FIND_ALL_PATIENTS;
-        Savepoint savepoint1 = null;
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-            savepoint1 = connection.setSavepoint("Savepoint One");
-            statement = connection.prepareStatement(sql);
-            resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                patients.add(getPatient(resultSet));
-            }
-            connection.commit();
-            connection.setAutoCommit(true);
-        } catch (SQLException ex) {
-            logger.error(ex.toString());
-            ConnectionUtils.rollbackTransaction(connection, savepoint1);
-        } finally {
-            ConnectionUtils.closeResultSet(resultSet);
-            ConnectionUtils.closePrepareStatement(statement);
-            ConnectionUtils.closeConnection(connection);
-        }
-        return patients;
+            return jdbcTemplate
+                    .query(FIND_ALL_PATIENTS, new PatientMapper());
     }
 
     @Override
     public List<Patient> findBySexPatients(PatientSex patientSex) {
-        List<Patient> patients = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        String sql = FIND_LIMITS_PATIENTS;
-        Savepoint savepoint1 = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-            savepoint1 = connection.setSavepoint("Savepoint One");
-            statement = connection.prepareStatement(sql);
-            statement.setString(1, String.valueOf(patientSex));
-            resultSet = statement.executeQuery();
-
-            while (resultSet.next()) {
-                patients.add(getPatient(resultSet));
-            }
-
-            connection.commit();
-            connection.setAutoCommit(true);
-        } catch (SQLException ex) {
-            logger.error(ex.toString());
-            ConnectionUtils.rollbackTransaction(connection, savepoint1);
-        } finally {
-            ConnectionUtils.closeResultSet(resultSet);
-            ConnectionUtils.closePrepareStatement(statement);
-            ConnectionUtils.closeConnection(connection);
-        }
-        return patients;
-    }
-
-    private Patient getPatient(ResultSet resultSet) throws SQLException {
-        if (resultSet != null) {
-            Long id = resultSet.getLong("patient_ID");
-            Date registrationDate = resultSet.getTimestamp("patient_registration");
-            String name = resultSet.getString("patient_name");
-            String surname = resultSet.getString("patient_surname");
-            PatientSex patientSex = PatientSex.valueOf(resultSet.getString("patient_sex"));
-            Date birthday = resultSet.getDate("patient_birthday");
-
-            Patient patient = new Patient();
-            patient.setId(id);
-            patient.setRegistrationDate(registrationDate);
-            patient.setName(name);
-            patient.setSurname(surname);
-            patient.setPatientSex(patientSex);
-            patient.setBirthday(birthday);
-
-            return patient;
-        }
-        return null;
-    }
-
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
+        return jdbcTemplate
+                .query(FIND_LIMITS_PATIENTS,new PatientMapper(), String.valueOf(patientSex));
     }
 }

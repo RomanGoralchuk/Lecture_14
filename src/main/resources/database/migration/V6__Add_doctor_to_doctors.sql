@@ -1,4 +1,4 @@
-INSERT INTO `doctors` (`doc_ID`, `doc_name`, `doc_surname`, `doc_specialization`) VALUES
+INSERT INTO `doctors` (`doc_id`, `doc_name`, `doc_surname`, `doc_specialization`) VALUES
 	(1, 'Jimm', 'Morris', 'cardiologis'),
 	(2, 'Albert', 'Einstein', 'proctologist'),
 	(3, 'John', 'Elton', 'psihologist'),

@@ -1,16 +1,21 @@
-Hometask lecture 13
+# Hometask lecture 14
 0. git repo +
-1. base on hometask 12 +
-2. remove all xml configuration +
-3. All beans to annotation +
-4. at least 2 beans of the same type (interface) +
-5. inject by Autowired + 
-6. inject by Qualified +
+1. base on hometask 13 +
+2. README with the task +
+3. Add JDBC template from spring +
+4. Add 1 DAO implementation with JDBC template +
+5. Add 1 DAO implementation with Named JDBC template
 
-Additional for 10
-7. Spring bean for DataSource (jdbc pool per student) +
-8. jdbc properties by @Value annotation +
-9. docker-compose file with your db + from console
-10. schema to flyway/liquibase (per student) + from console
+> *NOTE: should be used: queryForObject*
 
-@StepanDudkin flyway
+## Additional for 10
+6. docker-compose +
+7. Tests for DAO
+
+### Standard links
++ [Pom xml](pom.xml)
++ [Docker compose](docker-compose.yaml)
++ [Main class](src/main/java/by/itacademy/javaenterprise/goralchuk/MainTest.java)
++ [Migration path](src/main/resources/database/migration)
++ [Flyway conf](src/main/resources/flyway.conf)
++ [Database properties](src/main/resources/database.properties)
