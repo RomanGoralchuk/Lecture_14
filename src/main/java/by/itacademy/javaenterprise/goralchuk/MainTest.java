@@ -5,12 +5,14 @@ import by.itacademy.javaenterprise.goralchuk.dao.PatientDAOImpl;
 import by.itacademy.javaenterprise.goralchuk.entity.Patient;
 import by.itacademy.javaenterprise.goralchuk.entity.PatientSex;
 import by.itacademy.javaenterprise.goralchuk.spring.SpringConfig;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import java.sql.SQLException;
+import javax.sql.DataSource;
 
 public class MainTest {
 

@@ -10,7 +10,7 @@
 
 ## Additional for 10
 6. docker-compose + [Docker compose](docker-compose.yaml)
-7. Tests for DAO
+7. Tests for DAO ... _to be continued...._ :(
 
 ### Standard links
 + [Pom xml](pom.xml)

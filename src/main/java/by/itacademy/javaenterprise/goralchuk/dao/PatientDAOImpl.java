@@ -3,6 +3,7 @@ package by.itacademy.javaenterprise.goralchuk.dao;
 import by.itacademy.javaenterprise.goralchuk.entity.Patient;
 import by.itacademy.javaenterprise.goralchuk.entity.PatientSex;
 import lombok.Data;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,6 @@ public class PatientDAOImpl implements PatientDAO {
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
-
 
     @Override
     public Patient get(long id) {
