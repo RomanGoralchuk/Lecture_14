@@ -10,7 +10,7 @@
 
 ## Additional for 10
 6. docker-compose + [Docker compose](docker-compose.yaml)
-7. Tests for DAO ... _to be continued...._ :(
+7. Tests for DAO + Added test 13.11.2021 [Test class](src/test/java/by/itacademy/javaenterprise/goralchuk/dao/PatientDAOImplTest.java)
 
 ### Standard links
 + [Pom xml](pom.xml)

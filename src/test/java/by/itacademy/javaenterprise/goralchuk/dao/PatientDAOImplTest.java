@@ -1,44 +1,62 @@
 package by.itacademy.javaenterprise.goralchuk.dao;
 
 import by.itacademy.javaenterprise.goralchuk.entity.Patient;
-import org.apache.commons.dbcp2.BasicDataSource;
-import org.flywaydb.core.Flyway;
+import by.itacademy.javaenterprise.goralchuk.entity.PatientSex;
 import org.junit.*;
-import org.testcontainers.containers.MariaDBContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.junit.rules.MethodRule;
+import org.junit.rules.TestWatchman;
+import org.junit.runners.model.FrameworkMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 
 public class PatientDAOImplTest {
-    private static MariaDBContainer mariaDBContainer;
-    private static BasicDataSource dataSource;
-    private PatientDAOImpl patientDAO;
+    private static PatientDAOImpl patientDAO;
+    private static DataSource dataSource;
+    private static JdbcTemplate jdbcTemplate;
+    private static NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(PatientDAOImplTest.class);
 
+    @Rule public MethodRule watchman = new TestWatchman() {
+        public void starting(FrameworkMethod method) {
+            logger.info("Test {} is running.", method.getName());
+        }
+        public void succeeded(FrameworkMethod method) {
+            logger.info("Test {} succesfully run.", method.getName());
+        }
+        public void failed(Throwable e, FrameworkMethod method) {
+            logger.error("Test {} failed with {} reason.",
+                    method.getName(), e.getMessage());
+        }
+    };
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        mariaDBContainer = new MariaDBContainer("mariadb:10.1.16");
-        mariaDBContainer.start();
-        dataSource = new BasicDataSource();
-        dataSource.setDriverClassName(mariaDBContainer.getDriverClassName());
-        dataSource.setUrl(mariaDBContainer.getJdbcUrl());
-        dataSource.setUsername(mariaDBContainer.getContainerName());
-        dataSource.setPassword(mariaDBContainer.getPassword());
-
-        Flyway flyway = Flyway.configure().dataSource(dataSource).locations("classpath:sql").load();
-        flyway.migrate();
+        dataSource = new DriverManagerDataSource(
+                "jdbc:mariadb://127.0.0.1:3306/hospital?useUnicode=true&characterEncoding=UTF-8",
+                "user",
+                "userpass");
+        jdbcTemplate = new JdbcTemplate(dataSource);
+        namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        patientDAO = new PatientDAOImpl(jdbcTemplate, namedParameterJdbcTemplate);
     }
 
     @AfterClass
     public static void afterClass() throws Exception {
-        mariaDBContainer.stop();
+        dataSource.getConnection().close();
     }
 
     @Before
     public void setUp() throws Exception {
-        patientDAO = new PatientDAOImpl(patientDAO.getJdbcTemplate(), patientDAO.getNamedParameterJdbcTemplate());
+
     }
 
     @After
@@ -47,20 +65,40 @@ public class PatientDAOImplTest {
 
     @Test
     public void whenLookingForAPatientById() {
-        long id = 2;
-        Patient patientTest = patientDAO.get(id);
-        assertEquals(id, patientTest);
+        long patientFindId = 2;
+        Patient patientDaoTest = patientDAO.get(patientFindId);
+        long patientRealId = patientDaoTest.getId();
+        assertEquals(patientRealId, patientFindId);
     }
 
     @Test
-    public void save() {
+    public void whenWeSaveAPatientToTheDataBase() {
+        Patient patientDaoNew = new Patient(
+                "TestName",
+                "TestSurname",
+                PatientSex.M,
+                java.sql.Date.valueOf("1111-11-11"));
+
+        List<Patient> listPatientBefore = patientDAO.findAllPersons();
+        int numberOfRecordsBefore = listPatientBefore.size();
+
+        patientDAO.save(patientDaoNew);
+
+        List<Patient> listPatientAfter = patientDAO.findAllPersons();
+        int numberOfRecordsAfter = listPatientAfter.size();
+
+        assertEquals(numberOfRecordsAfter, numberOfRecordsBefore + 1);
     }
 
     @Test
-    public void findAllPersons() {
+    public void whenWeGetAListOfAllPersons() {
+        List<Patient> listPatientTest = patientDAO.findAllPersons();
+        assertNotNull(listPatientTest);
     }
 
     @Test
-    public void findBySexPatients() {
+    public void whenWeFindPatientsBySex() {
+        List<Patient> listPatientTest = patientDAO.findBySexPatients(PatientSex.M);
+        assertNotNull(listPatientTest);
     }
 }
